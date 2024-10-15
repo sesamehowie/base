@@ -1,0 +1,4 @@
+data/private_keys.txt
+data/proxies.txt
+.venv
+__pycache__

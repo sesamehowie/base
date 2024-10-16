@@ -5,9 +5,9 @@ from web3 import Web3
 from core.utils.networks import Network
 from eth_account import Account
 from eth_typing import HexStr
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from core.utils.helpers import sleeping
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from loguru import logger
 from settings import (
     OKX_API_KEY,
@@ -48,7 +48,7 @@ class OKX:
         self.network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -59,7 +59,7 @@ class OKX:
 
         self.logger.debug(f"Now working: module {self.module_name}")
 
-    @exception_handler_with_retry
+    @retry_execution
     def withdraw_native(self, chain=None):
         from config import (
             OKX_CHAIN_NATIVE_MAPPING,

@@ -20,20 +20,28 @@ from settings import (
 )
 
 
-class EthManager:
+class EvmClient:
 
     def __init__(
         self: Self,
-        account_name: str | int,
-        private_key: HexStr | str,
-        network: Network,
-        user_agent: str,
-        proxy: str,
+        account_name: str | int = None,
+        private_key: HexStr | str = None,
+        network: Network = Networks.Ethereum,
+        user_agent: str = None,
+        proxy: str = None,
     ) -> Self:
         from config import PROXY_CYCLE
 
-        self.account_name = account_name
-        self.private_key = private_key
+        if account_name is None:
+            self.account_name = "No name"
+        else:
+            self.account_name = account_name
+
+        if self.private_key is None:
+            self.private_key = Account.create(extra_entropy=random.randint(1, 999999))
+        else:
+            self.private_key = private_key
+
         self.account = Account.from_key(self.private_key)
         self.address = Web3.to_checksum_address(self.account.address)
         self.network = network
@@ -53,8 +61,9 @@ class EthManager:
         self.w3 = Web3(
             Web3.HTTPProvider(endpoint_uri=self.rpc, request_kwargs=self.request_kwargs)
         )
+
         self.logger = logger
-        self.module_name = "EthManager"
+        self.module_name = "EvmClient"
 
         if network.chain_id == Networks.Linea.chain_id:
             self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -214,7 +223,7 @@ class EthManager:
         self, destination_network: Network, original_balance: int
     ) -> bool:
 
-        destination_client = EthManager(
+        destination_client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=destination_network,
@@ -264,7 +273,7 @@ class EthManager:
             f"Waiting for gas on mainnet to be less than {ACCEPTABLE_L1_GWEI}gwei..."
         )
 
-        manager = EthManager(
+        manager = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=Networks.Ethereum,

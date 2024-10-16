@@ -6,12 +6,28 @@ from web3 import Web3
 from pathlib import Path
 from eth_account import Account
 from loguru import logger
-from core.utils.helpers import sleeping, async_sleeping, write_csv
-from core.utils.w3_manager import EthManager
-from core.utils.networks import Networks
-from core.utils.smart_checker import SmartL2Checker
+from core import (
+    sleeping,
+    async_sleeping,
+    write_csv,
+    EvmClient,
+    Networks,
+    SmartL2Checker,
+)
 
-from functions import *
+from functions import (
+    withdraw_okx,
+    bridge_relay,
+    mint_speedtracer,
+    opt_in,
+    mint_truworld_pass,
+    spin_wheel_and_trigger_ref,
+    check_and_claim_coinbase,
+    bridge_nitro,
+    zora_instant_bridge,
+    get_ocs_campaign_result,
+    register_talentprotocol,
+)
 
 
 class ModuleRunner:
@@ -77,7 +93,7 @@ class ModuleRunner:
             user_agent = pyua()
             proxy = next(self.proxy_cycle)
 
-            # client = EthManager(
+            # client = EvmClient(
             #     account_name=name,
             #     private_key=key,
             #     network=Networks.Base,
@@ -123,7 +139,7 @@ class ModuleRunner:
 
     async def smart_bridge(self, key: str, name: str, ua: str, proxy: str):
         logger.info("Starting Bridge to Zora and Base through ETH mainnet")
-        client = EthManager(
+        client = EvmClient(
             account_name=name,
             private_key=key,
             network=Networks.Base,
@@ -222,8 +238,8 @@ class ModuleRunner:
             ua = pyua()
             proxy = next(self.proxy_cycle)
 
-            eth_client = EthManager(name, key, Networks.Ethereum, ua, proxy)
-            zora_client = EthManager(name, key, Networks.Zora, ua, proxy)
+            eth_client = EvmClient(name, key, Networks.Ethereum, ua, proxy)
+            zora_client = EvmClient(name, key, Networks.Zora, ua, proxy)
 
             bal_eth = eth_client.get_eth_balance()
             bal_zora = zora_client.get_eth_balance()

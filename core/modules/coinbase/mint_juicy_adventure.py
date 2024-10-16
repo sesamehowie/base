@@ -1,10 +1,10 @@
 import random
 from loguru import logger
 from datetime import datetime, timedelta
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.utils.networks import Network
 from requests import Session
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from eth_account import Account
 from eth_account.messages import encode_defunct
@@ -31,7 +31,7 @@ class JuicyAdventure:
         self.network: Network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -175,7 +175,7 @@ class JuicyAdventure:
 
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     def run(self) -> bool | None:
         nonce = self.get_nonce()
         timestamp = self.get_timestamp()

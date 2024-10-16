@@ -4,13 +4,13 @@ from loguru import logger
 from config import BASESWAP_ROUTER_ABI, BASESWAP_CONTRACTS, BASE_TOKENS, ERC20_ABI
 from typing import Self
 from eth_account import Account
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from eth_typing import HexStr
 from core.utils.networks import Network
 from core.utils.helpers import sleeping
 
-# from core.utils.custom_wrappers import exception_handler_with_retry
+# from core.utils.custom_wrappers import retry_execution
 
 
 class BaseSwap:
@@ -30,7 +30,7 @@ class BaseSwap:
         self.network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -77,6 +77,7 @@ class BaseSwap:
     ) -> list[int, float, float]:
         random_amount = round(random.uniform(min_amount, max_amount), decimal)
         random_percent = random.randint(min_percent, max_percent)
+
         percent = 1 if random_percent == 100 else random_percent / 100
 
         if from_token == "ETH":
@@ -86,6 +87,7 @@ class BaseSwap:
                 if all_amount
                 else self.w3.to_wei(random_amount, "ether")
             )
+
             amount = (
                 self.w3.from_wei(int(balance * percent), "ether")
                 if all_amount

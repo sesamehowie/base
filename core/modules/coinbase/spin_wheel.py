@@ -1,8 +1,8 @@
 from loguru import logger
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.utils.networks import Network
 from core.utils.helpers import sleeping
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 import requests
 from web3 import Web3
 from eth_account import Account
@@ -32,7 +32,7 @@ class SpinWheel:
         self.network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -43,7 +43,7 @@ class SpinWheel:
 
         self.logger.debug(f"Now working: module {self.module_name}")
 
-    @exception_handler_with_retry
+    @retry_execution
     def opt_in(self) -> bool | None:
 
         self.logger.info(
@@ -78,7 +78,7 @@ class SpinWheel:
 
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     def trigger_probs(self) -> bool | None:
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Checking available spin..."
@@ -98,7 +98,7 @@ class SpinWheel:
 
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     def execute_spin(self) -> bool | None:
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Executing spin..."

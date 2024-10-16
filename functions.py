@@ -1,5 +1,5 @@
 from eth_typing import HexStr
-from core.modules import (
+from core import (
     Relay,
     OKX,
     MintFun,
@@ -28,8 +28,8 @@ from core.modules import (
     ThankYouForHavingUs,
     SummerBasecampTrek,
     TalentProtocol,
+    Network,
 )
-from core.utils.networks import Network
 
 
 def withdraw_okx(

@@ -1,8 +1,8 @@
 from loguru import logger
 import requests
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.utils.networks import Network, Networks
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from settings import NITRO_FROM_TOKEN, NITRO_TO_TOKEN
 from config import ETH_MASK
 from web3 import Web3
@@ -29,7 +29,7 @@ class Nitro:
         self.network: Network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -89,7 +89,7 @@ class Nitro:
             data["txn"]["to"]
         )
 
-    @exception_handler_with_retry
+    @retry_execution
     def bridge(
         self,
         percentages: tuple[str, str],
@@ -103,10 +103,10 @@ class Nitro:
         amount = self.client.get_percentile(percentages=percentages)
 
         self.logger.info(
-            f"{self.account_name} | {self.address} | {self.module_name} | Sending {EthManager.get_human_amount(amount_wei=amount)} {from_token_name} from {self.client.network.name} for {to_token_name} in {to_network.name}"
+            f"{self.account_name} | {self.address} | {self.module_name} | Sending {EvmClient.get_human_amount(amount_wei=amount)} {from_token_name} from {self.client.network.name} for {to_token_name} in {to_network.name}"
         )
 
-        dest_client = EthManager(
+        dest_client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=to_network,

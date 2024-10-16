@@ -3,9 +3,9 @@ import random
 import time
 import aiohttp
 from aiohttp_socks import ProxyConnector
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.utils.networks import Network
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from eth_account import Account
 from typing import Self
@@ -32,7 +32,7 @@ class SpeedTracer:
         self.network: Network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -1820,7 +1820,7 @@ class SpeedTracer:
 
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     async def mint(self):
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.mint_data.name} | Starting mint run..."

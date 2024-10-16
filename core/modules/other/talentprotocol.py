@@ -1,7 +1,7 @@
 import json
 from typing import Self
 from eth_account import Account
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from fake_useragent import UserAgent
 from eth_account.messages import encode_defunct
@@ -9,7 +9,7 @@ import requests
 from eth_typing import HexStr
 from loguru import logger
 from core.utils.networks import Network
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.utils.helpers import get_browser_version
 
 
@@ -30,7 +30,7 @@ class TalentProtocol:
         self.network = network
         self.user_agent = UserAgent(min_version=120.0, os="windows").random
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -45,7 +45,7 @@ class TalentProtocol:
         }
         self.logger.debug(f"Now working: module {self.module_name}")
 
-    @exception_handler_with_retry
+    @retry_execution
     def get_nonce(self):
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Getting nonce..."
@@ -92,7 +92,7 @@ class TalentProtocol:
 
         return signature
 
-    @exception_handler_with_retry
+    @retry_execution
     def login(self, signature: str):
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Logging into Talent Protocol..."

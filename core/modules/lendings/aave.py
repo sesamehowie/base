@@ -6,8 +6,8 @@ from eth_account import Account
 from core.utils.networks import Network
 from config import AAVE_CONTRACT, AAVE_WETH_CONTRACT, AAVE_ABI
 from core.utils.helpers import sleeping
-from core.utils.w3_manager import EthManager
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.clients.evm_client import EvmClient
+from core.utils.decorators import retry_execution
 
 
 class Aave:
@@ -27,7 +27,7 @@ class Aave:
         self.network = network
         self.user_agent = user_agent
         self.proxy = proxy
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -57,7 +57,7 @@ class Aave:
 
         return amount_approved
 
-    @exception_handler_with_retry
+    @retry_execution
     def approve(
         self, amount: int, token_address: str, contract_address: str
     ) -> bool | None:
@@ -99,7 +99,7 @@ class Aave:
 
             return
 
-    @exception_handler_with_retry
+    @retry_execution
     def get_deposit_amount(self):
         aave_weth_contract = self.client.get_contract(contract_addr=AAVE_WETH_CONTRACT)
 
@@ -107,7 +107,7 @@ class Aave:
 
         return amount
 
-    @exception_handler_with_retry
+    @retry_execution
     def deposit(
         self,
         min_amount: float,
@@ -152,7 +152,7 @@ class Aave:
             return
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     def withdraw(self) -> None:
         amount = self.get_deposit_amount()
 

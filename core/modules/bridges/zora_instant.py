@@ -1,7 +1,7 @@
 from core.utils.helpers import sleeping
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from core.utils.networks import Network, Networks
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from web3 import Web3
 from eth_account import Account
 from typing import Self
@@ -29,7 +29,7 @@ class InstantBridge:
         self.address = Web3.to_checksum_address(self.account.address)
         self.logger = logger
         self.module_name = "Zora Instant Bridge"
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -89,7 +89,7 @@ class InstantBridge:
         sleeping(mode=1)
         return
 
-    @exception_handler_with_retry
+    @retry_execution
     def bridge(self, percentages: tuple[str, str]):
 
         amount = self.client.get_percentile(percentages=percentages)
@@ -108,7 +108,7 @@ class InstantBridge:
         signed = self.client.sign_transaction(tx_dict=bridge_tx_dict)
 
         if signed:
-            zora_client = EthManager(
+            zora_client = EvmClient(
                 account_name=self.account_name,
                 private_key=self.private_key,
                 network=Networks.Zora,

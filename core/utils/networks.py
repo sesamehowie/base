@@ -22,7 +22,7 @@ class Network:
 @dataclass
 class Networks:
     Ethereum = Network(
-        name="Ethereum Mainnet",
+        name="Ethereum",
         chain_id=1,
         rpc_list=[
             "https://eth.meowrpc.com",
@@ -84,3 +84,15 @@ class Networks:
         eip1559_support=True,
         token="ETH",
     )
+    Scroll = Network(
+        name="Scroll",
+        chain_id=534352,
+        rpc_list=[
+            "https://empty-newest-mountain.scroll-mainnet.quiknode.pro/fb052bf49fc42586377a0376dde4c80109e9facf",
+            "https://empty-newest-mountain.scroll-mainnet.quiknode.pro/fb052bf49fc42586377a0376dde4c80109e9facf",
+        ],
+        scanner="https://scrollscan.com/",
+        eip1559_support=True,
+        token="ETH",
+    )
+

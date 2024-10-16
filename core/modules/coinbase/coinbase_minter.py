@@ -1,12 +1,12 @@
 from typing import Self
 from eth_account import Account
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from requests import Session
 from eth_typing import HexStr
 from loguru import logger
 from core.utils.networks import Network
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from core.modules.coinbase.coinbase_wallet_mints import Mint
 
 
@@ -29,7 +29,7 @@ class CoinbaseMinter:
         self.user_agent = user_agent
         self.proxy = proxy
         self.session = Session()
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -61,7 +61,7 @@ class CoinbaseMinter:
         data = contract.encodeABI(fn_name=function_name, args=input_data)
         return data
 
-    @exception_handler_with_retry
+    @retry_execution
     def mint(self, mint: Mint):
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Starting mint run for {mint.name} NFT..."

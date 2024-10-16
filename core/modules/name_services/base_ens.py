@@ -1,13 +1,13 @@
 from typing import Self
 import random
 from eth_account import Account
-from core.utils.w3_manager import EthManager
+from core.clients.evm_client import EvmClient
 from web3 import Web3
 from requests import Session
 from eth_typing import HexStr
 from loguru import logger
 from core.utils.networks import Network
-from core.utils.custom_wrappers import exception_handler_with_retry
+from core.utils.decorators import retry_execution
 from config import ENS_ABI, REGISTRY_CONTROLLER_ADDR
 from core.modules.coinbase.coinbase_wallet_mints import Mints
 from hexbytes import HexBytes
@@ -34,7 +34,7 @@ class BaseName:
         self.user_agent = user_agent
         self.proxy = proxy
         self.session = Session()
-        self.client = EthManager(
+        self.client = EvmClient(
             account_name=self.account_name,
             private_key=self.private_key,
             network=self.network,
@@ -63,7 +63,7 @@ class BaseName:
                 node = keccak(node + label_hash)
         return node
 
-    @exception_handler_with_retry
+    @retry_execution
     def get_five_letter_words(self) -> list[str]:
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Searching for 5 letter words..."
@@ -95,7 +95,7 @@ class BaseName:
 
         return words
 
-    @exception_handler_with_retry
+    @retry_execution
     def get_name_suggestion(self, word: str):
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Getting name suggestions from Base..."
@@ -109,7 +109,7 @@ class BaseName:
 
         return random.choice(response["suggestion"])
 
-    @exception_handler_with_retry
+    @retry_execution
     def register(self):
         is_registered = self.registry_contract.functions.discountedRegistrants(
             self.address

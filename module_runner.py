@@ -29,6 +29,7 @@ from functions import (
     register_talentprotocol,
     bridge_orbiter,
     swap_baseswap,
+    deploy_random_contract,
 )
 
 
@@ -345,4 +346,48 @@ class ModuleRunner:
             await async_sleeping(2)
 
     async def custom_module(self):
-        pass
+        from settings import ORBITER_AMT_RANGE, BASESWAP_AMT_RANGE
+
+        self.logger.info("Starting custom run...")
+
+        for key, name in list(zip(self.private_keys, self.account_names)):
+            proxy = next(self.proxy_cycle)
+
+            modules = [bridge_orbiter, swap_baseswap]
+
+            user_agent = pyua()
+
+            arg_mapping = {
+                bridge_orbiter: [
+                    name,
+                    key,
+                    Networks.Zora,
+                    user_agent,
+                    proxy,
+                    Networks.Base,
+                    None,
+                    ORBITER_AMT_RANGE,
+                ],
+                deploy_random_contract: [name, key, Networks.Base, user_agent, proxy],
+                swap_baseswap: [
+                    name,
+                    key,
+                    Networks.Base,
+                    user_agent,
+                    proxy,
+                    "ETH",
+                    "USDC",
+                    BASESWAP_AMT_RANGE[0],
+                    BASESWAP_AMT_RANGE[1],
+                    18,
+                ],
+            }
+
+            random.shuffle(modules)
+
+            for module in modules:
+                module(*arg_mapping[module])
+
+                await async_sleeping(mode=1)
+
+            await async_sleeping(mode=2)

@@ -28,6 +28,7 @@ async def main():
         3: "Coinbase run and bridge combined",
         4: "OCS campaign results",
         5: "TalentProtocol registration",
+        6: "Custom Module",
     }
 
     logger.info("Choose action:\n")
@@ -38,7 +39,7 @@ async def main():
     while True:
         try:
             choice = int(input())
-            if choice in range(1, 6):
+            if choice in range(1, 7):
                 break
             else:
                 raise InvalidIntValueException(
@@ -57,6 +58,7 @@ async def main():
         3: module_runner.smart_coinbase_run,
         4: module_runner.get_and_write_ocs_results,
         5: module_runner.register_talentprotocol,
+        6: module_runner.custom_module,
     }
 
     tasks = [tasks_mapping[choice]()]

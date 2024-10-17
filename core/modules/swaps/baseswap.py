@@ -82,15 +82,15 @@ class BaseSwap:
         percent = 1 if random_percent == 100 else random_percent / 100
 
         if from_token == "ETH":
-            balance = self.w3.eth.get_balance(self.address)
+            balance = self.client.get_eth_balance()
             amount_wei = (
                 int(balance * percent)
                 if all_amount
-                else self.w3.to_wei(random_amount, "ether")
+                else Web3.to_wei(random_amount, "ether")
             )
 
             amount = (
-                self.w3.from_wei(int(balance * percent), "ether")
+                Web3.from_wei(int(balance * percent), "ether")
                 if all_amount
                 else random_amount
             )
@@ -107,8 +107,8 @@ class BaseSwap:
         return amount_wei, amount, balance
 
     def check_allowance(self, token_address: str, contract_address: str) -> int:
-        token_address = self.w3.to_checksum_address(token_address)
-        contract_address = self.w3.to_checksum_address(contract_address)
+        token_address = Web3.to_checksum_address(token_address)
+        contract_address = Web3.to_checksum_address(contract_address)
 
         contract = self.client.get_contract(contract_addr=token_address, abi=ERC20_ABI)
         amount_approved = contract.functions.allowance(
@@ -187,8 +187,8 @@ class BaseSwap:
         contract_txn = self.swap_contract.functions.swapExactETHForTokens(
             min_amount_out,
             [
-                self.w3.to_checksum_address(BASE_TOKENS[from_token]),
-                self.w3.to_checksum_address(BASE_TOKENS[to_token]),
+                Web3.to_checksum_address(BASE_TOKENS[from_token]),
+                Web3.to_checksum_address(BASE_TOKENS[to_token]),
             ],
             self.address,
             deadline,
@@ -213,8 +213,8 @@ class BaseSwap:
             amount,
             min_amount_out,
             [
-                self.w3.to_checksum_address(BASE_TOKENS[from_token]),
-                self.w3.to_checksum_address(BASE_TOKENS[to_token]),
+                Web3.to_checksum_address(BASE_TOKENS[from_token]),
+                Web3.to_checksum_address(BASE_TOKENS[to_token]),
             ],
             self.address,
             deadline,

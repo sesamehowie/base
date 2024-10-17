@@ -34,16 +34,8 @@ class EvmClient:
     ) -> Self:
         from config import PROXY_CYCLE
 
-        if account_name is None:
-            self.account_name = "No name"
-        else:
-            self.account_name = account_name
-
-        if self.private_key is None:
-            self.private_key = Account.create(extra_entropy=random.randint(1, 999999))
-        else:
-            self.private_key = private_key
-
+        self.account_name = account_name
+        self.private_key = private_key
         self.account = Account.from_key(self.private_key)
         self.address = Web3.to_checksum_address(self.account.address)
         self.network = network

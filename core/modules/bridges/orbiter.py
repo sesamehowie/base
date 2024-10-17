@@ -106,14 +106,16 @@ class Orbiter:
         amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
 
         if not need_check:
-            bridge_info = f'{amount} {from_token_name} from {from_chain["name"]} to {to_chain["name"]}'
+            bridge_info = (
+                f"{amount} {from_token_name} from {from_chain.name} to {to_chain.name}"
+            )
             self.logger.info(
                 f"{self.account_name} | {self.address} | {self.module_name} | Bridge: {bridge_info}"
             )
 
         bridge_data = self.get_maker_data(to_chain=to_chain)
 
-        destination_code = 9000 + to_chain["id"]
+        destination_code = 9000 + self.internal_ids[to_chain.name]
         decimals = 18 if from_token_name == "ETH" else 6
         fee = int(float(bridge_data["fee"]) * 10**decimals)
         amount_in_wei = self.client.to_wei(amount, decimals)

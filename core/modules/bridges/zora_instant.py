@@ -1,5 +1,5 @@
-from core.utils.helpers import sleeping
 from core.clients.evm_client import EvmClient
+from core.clients.request_client import RequestClient
 from core.utils.networks import Network, Networks
 from core.utils.decorators import retry_execution
 from web3 import Web3
@@ -7,10 +7,9 @@ from eth_account import Account
 from typing import Self
 from loguru import logger
 from eth_typing import HexStr
-import requests
 
 
-class InstantBridge:
+class InstantBridge(RequestClient):
     def __init__(
         self,
         account_name: str | int,
@@ -19,6 +18,7 @@ class InstantBridge:
         user_agent: str,
         proxy: str,
     ) -> Self:
+        super().__init__(user_agent=user_agent, proxy=proxy)
 
         self.account_name = account_name
         self.private_key = private_key
@@ -74,20 +74,13 @@ class InstantBridge:
             "user": self.address,
         }
 
-        response = requests.post(
+        response = self.request_post(
             url=url,
             json=body,
             headers=headers,
-            proxies={"http": f"http://{self.proxy}", "https": f"http://{self.proxy}"},
         )
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        self.logger.error(
-            f"{self.account_name} | {self.address} | {self.module_name} | Bridge request failed: {response.text}"
-        )
-        sleeping(mode=1)
-        return
+
+        return response
 
     @retry_execution
     def bridge(self, percentages: tuple[str, str]):

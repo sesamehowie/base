@@ -3,9 +3,7 @@ import requests
 import pyuseragents
 from typing import Self
 from loguru import logger
-from core.utils.helpers import sleeping
-from abc import abstractmethod
-from core.utils.exceptions import RequestFailedException, ProxyException
+from core.utils.exceptions import RequestFailedException
 
 
 class RequestClient:
@@ -34,10 +32,12 @@ class RequestClient:
         finally:
             return data
 
-    @staticmethod
-    @abstractmethod
-    def handle_request(response: requests.Response):
-        pass
+    def handle_request(self, response: requests.Response) -> dict:
+        if self.is_successful_request(response=response):
+            return self.get_response_obj(response=response)
+        raise RequestFailedException(
+            f"Request is not successful, status code: {response.status_code}, text: {response.text}"
+        )
 
     def session_get(
         self,
@@ -62,3 +62,77 @@ class RequestClient:
             timeout=timeout,
         ) as response:
             return self.handle_request(response)
+
+    def session_post(
+        self,
+        url: str,
+        headers: dict | None = None,
+        data: dict | None = None,
+        json: dict | None = None,
+        params: dict | None = None,
+        timeout: int = 60,
+    ):
+        with self._session.post(
+            url=url,
+            headers={"User-Agent": self.user_agent} if headers is None else headers,
+            data=data,
+            params=params,
+            json=json,
+            proxies=(
+                {"http": self.proxy, "https": self.proxy}
+                if self.proxy is not None
+                else None
+            ),
+            timeout=timeout,
+        ) as response:
+            return self.handle_request(response)
+
+    def request_get(
+        self,
+        url: str,
+        headers: dict | None = None,
+        data: dict | None = None,
+        json: dict | None = None,
+        params: dict | None = None,
+        timeout: int = 60,
+    ):
+        response = requests.get(
+            url=url,
+            headers={"User-Agent": self.user_agent} if headers is None else headers,
+            data=data,
+            params=params,
+            json=json,
+            proxies=(
+                {"http": self.proxy, "https": self.proxy}
+                if self.proxy is not None
+                else None
+            ),
+            timeout=timeout,
+        )
+
+        return self.handle_request(response)
+
+    def request_post(
+        self,
+        url: str,
+        headers: dict | None = None,
+        data: dict | None = None,
+        json: dict | None = None,
+        params: dict | None = None,
+        timeout: int = 60,
+    ):
+        response = requests.post(
+            url=url,
+            headers={"User-Agent": self.user_agent} if headers is None else headers,
+            data=data,
+            params=params,
+            json=json,
+            proxies=(
+                {"http": self.proxy, "https": self.proxy}
+                if self.proxy is not None
+                else None
+            ),
+            timeout=timeout,
+        )
+
+        return self.handle_request(response)

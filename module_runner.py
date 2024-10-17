@@ -27,6 +27,8 @@ from functions import (
     zora_instant_bridge,
     get_ocs_campaign_result,
     register_talentprotocol,
+    bridge_orbiter,
+    swap_baseswap,
 )
 
 
@@ -341,3 +343,6 @@ class ModuleRunner:
             self.logger.info(f"{address} - result: {res}")
 
             await async_sleeping(2)
+
+    async def custom_module(self):
+        pass

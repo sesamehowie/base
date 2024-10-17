@@ -9,6 +9,7 @@ from web3 import Web3
 from eth_typing import HexStr
 from core.utils.networks import Network
 from core.utils.helpers import sleeping
+from core.utils.decorators import retry_execution
 
 # from core.utils.custom_wrappers import retry_execution
 
@@ -221,6 +222,7 @@ class BaseSwap:
 
         return contract_txn
 
+    @retry_execution
     def swap(
         self,
         from_token: str,

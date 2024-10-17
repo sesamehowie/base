@@ -1,6 +1,7 @@
 from web3 import Web3
 import random
 import time
+from decimal import Decimal
 from web3.middleware.geth_poa import geth_poa_middleware
 from typing import Self
 from loguru import logger
@@ -8,6 +9,7 @@ from web3.contract.contract import Contract
 from web3.types import SignedTx
 from core.utils.helpers import sleeping, change_proxy
 from eth_typing import HexStr, ChecksumAddress
+from web3.types import Wei
 from eth_account import Account
 from core.utils.networks import Network, Networks
 from settings import (
@@ -71,6 +73,14 @@ class EvmClient:
     @staticmethod
     def to_bytes(data) -> bytes:
         return Web3.to_bytes(data)
+
+    @staticmethod
+    def to_wei(amount: float | Decimal, decimals: int) -> int | Wei:
+        return int(amount * 10**decimals)
+
+    @staticmethod
+    def from_wei(amount_wei: int | Wei, decimals: int):
+        return amount_wei / 10**decimals
 
     def get_contract(self, contract_addr: str | ChecksumAddress, abi=None) -> Contract:
         from config import ERC20_ABI

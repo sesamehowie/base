@@ -1,9 +1,10 @@
+import random
 from loguru import logger
-import requests
 from core.utils.decorators import retry_execution
 from core.utils.networks import Network, Networks
 from core.clients.evm_client import EvmClient
-from settings import NITRO_FROM_TOKEN, NITRO_TO_TOKEN
+from core.clients.request_client import RequestClient
+from settings import NITRO_FROM_TOKEN, NITRO_TO_TOKEN, NITRO_AMT_RANGE
 from config import ETH_MASK
 from web3 import Web3
 from eth_account import Account
@@ -11,7 +12,7 @@ from typing import Self
 from eth_typing import HexStr
 
 
-class Nitro:
+class Nitro(RequestClient):
     def __init__(
         self,
         account_name: str | int,
@@ -20,6 +21,7 @@ class Nitro:
         user_agent: str,
         proxy: str,
     ) -> Self:
+        super().__init__(user_agent=user_agent, proxy=proxy)
 
         self.logger = logger
         self.private_key = private_key
@@ -63,11 +65,7 @@ class Nitro:
             "partnerId": 1,
         }
 
-        response = requests.get(
-            url=url, params=params, headers=self.headers, proxies=self.default_proxies
-        )
-
-        data = response.json()
+        data = self.request_get(url=url, params=params, headers=self.headers)
 
         return data
 
@@ -79,8 +77,10 @@ class Nitro:
             "senderAddress": self.address,
         }
 
-        response = requests.post(
-            url=url, headers=self.headers, json=quote, proxies=self.default_proxies
+        response = self.request_post(
+            url=url,
+            headers=self.headers,
+            json=quote,
         )
 
         data = response.json()
@@ -92,7 +92,8 @@ class Nitro:
     @retry_execution
     def bridge(
         self,
-        percentages: tuple[str, str],
+        percentages: tuple[str, str] | None = None,
+        amount_range: list[float, float] | None = NITRO_AMT_RANGE,
         to_network: Network = Networks.Ethereum,
         from_token_name: str = NITRO_FROM_TOKEN,
         to_token_name: str = NITRO_TO_TOKEN,
@@ -100,10 +101,15 @@ class Nitro:
         to_token: str | None = ETH_MASK,
     ):
 
-        amount = self.client.get_percentile(percentages=percentages)
+        if percentages:
+            amount = self.client.get_percentile(percentages=percentages)
+            amount_float = self.client.get_human_amount(amount_wei=amount)
+        elif amount_range:
+            amount_float = round(random.uniform(amount_range[0], amount_range[1]), 6)
+            amount = self.client.to_wei(amount=amount_float, decimals=18)
 
         self.logger.info(
-            f"{self.account_name} | {self.address} | {self.module_name} | Sending {EvmClient.get_human_amount(amount_wei=amount)} {from_token_name} from {self.client.network.name} for {to_token_name} in {to_network.name}"
+            f"{self.account_name} | {self.address} | {self.module_name} | Sending {amount_float} {from_token_name} from {self.client.network.name} for {to_token_name} in {to_network.name}"
         )
 
         dest_client = EvmClient(

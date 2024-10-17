@@ -1,15 +1,17 @@
+import random
 from loguru import logger
-import requests
 from core.clients.evm_client import EvmClient
-from core.utils.networks import Network
+from core.utils.networks import Network, Networks
 from core.utils.decorators import retry_execution
 from web3 import Web3
 from eth_account import Account
 from typing import Self
 from eth_typing import HexStr
+from core.clients.request_client import RequestClient
+from settings import RELAY_AMT_RANGE
 
 
-class Relay:
+class Relay(RequestClient):
 
     def __init__(
         self,
@@ -19,6 +21,8 @@ class Relay:
         user_agent: str,
         proxy: str,
     ) -> Self:
+
+        super().__init__(user_agent=user_agent, proxy=proxy)
 
         self.logger = logger
         self.private_key = private_key
@@ -67,14 +71,12 @@ class Relay:
             "currency": ZERO_ADDRESS,
         }
 
-        response = requests.get(
+        data = self.request_get(
             url=url,
             headers=headers,
             params=params,
-            proxies={"http": f"http://{self.proxy}", "https": f"http://{self.proxy}"},
         )
 
-        data = response.json()
         return data
 
     def get_bridge_data(self, amount_wei, to_network: Network):
@@ -89,22 +91,29 @@ class Relay:
             "source": "relay.link",
         }
 
-        response = requests.post(
+        data = self.request_post(
             url=url,
             json=payload,
             headers={"User-Agent": self.user_agent},
-            proxies={"http": f"http://{self.proxy}", "https": f"http://{self.proxy}"},
         )
 
-        data = response.json()
         return data
 
     @retry_execution
-    def bridge(self, percentages: tuple[str, str], to_network: Network):
+    def bridge(
+        self,
+        percentages: tuple[str, str] = None,
+        amount_range: list[float, float] = RELAY_AMT_RANGE,
+        to_network: Network = Networks.Base,
+    ):
         from config import RELAY_CHAIN_NAME
 
-        amount_in_wei = self.client.get_percentile(percentages=percentages)
-        amount = self.client.get_human_amount(amount_in_wei)
+        if percentages:
+            amount_in_wei = self.client.get_percentile(percentages=percentages)
+            amount = self.client.get_human_amount(amount_in_wei)
+        elif amount_range:
+            amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
+            amount_in_wei = self.client.to_wei(amount=amount, decimals=18)
 
         networks_data = self.get_bridge_config(to_network=to_network)
         tx_data = self.get_bridge_data(amount_wei=amount_in_wei, to_network=to_network)

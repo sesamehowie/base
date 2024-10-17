@@ -96,3 +96,41 @@ class Networks:
         token="ETH",
     )
 
+    @staticmethod
+    def get_network_by_name(name: str) -> Network | None:
+        return {
+            "Arbitrum": Networks.Arbitrum,
+            "Ethereum": Networks.Ethereum,
+            "Optimism": Networks.Optimism,
+            "Base": Networks.Base,
+            "Linea": Networks.Linea,
+            "Zora": Networks.Zora,
+            "Scroll": Networks.Scroll,
+        }.get(name, None)
+
+    @staticmethod
+    def get_network_by_orbiter_id(orbiter_id: int) -> Network | None:
+        return Networks.get_network_by_name(
+            {
+                1: "Ethereum",
+                2: "Arbitrum",
+                6: "Polygon",
+                7: "Optimism",
+                19: "Scroll",
+                21: "Base",
+                23: "Linea",
+                30: "Zora",
+            }.get(orbiter_id, None)
+        )
+
+    @staticmethod
+    def get_network_by_chain_id(chain_id: int) -> Network | None:
+        return {
+            1: Networks.Ethereum,
+            42161: Networks.Arbitrum,
+            8453: Networks.Base,
+            10: Networks.Optimism,
+            59144: Networks.Linea,
+            7777777: Networks.Zora,
+            534352: Networks.Scroll,
+        }.get(chain_id, None)

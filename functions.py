@@ -29,6 +29,9 @@ from core import (
     SummerBasecampTrek,
     TalentProtocol,
     Network,
+    Networks,
+    Orbiter,
+    BaseSwap,
 )
 
 
@@ -56,8 +59,9 @@ def bridge_relay(
     network: Network,
     user_agent: str,
     proxy: str,
-    percentages: tuple[str, str],
     to_network: Network,
+    percentages: tuple[str, str] | None = None,
+    amount_range: list[float, float] | None = None,
 ):
     relay = Relay(
         account_name=account_name,
@@ -67,7 +71,9 @@ def bridge_relay(
         proxy=proxy,
     )
 
-    return relay.bridge(percentages=percentages, to_network=to_network)
+    return relay.bridge(
+        amount_range=amount_range, percentages=percentages, to_network=to_network
+    )
 
 
 def mint_mintfun(
@@ -1749,8 +1755,9 @@ def bridge_nitro(
     network: Network,
     user_agent: str,
     proxy: str,
-    percentages: tuple[str, str],
     to_network: Network,
+    percentages: tuple[str, str] | None = None,
+    amount_range: list[float, float] | None = None,
 ):
     nitro = Nitro(
         account_name=account_name,
@@ -1760,7 +1767,9 @@ def bridge_nitro(
         proxy=proxy,
     )
 
-    return nitro.bridge(percentages=percentages, to_network=to_network)
+    return nitro.bridge(
+        percentages=percentages, amount_range=amount_range, to_network=to_network
+    )
 
 
 def zora_instant_bridge(
@@ -1868,3 +1877,58 @@ def register_talentprotocol(
     )
 
     return talentprotocol.run_register()
+
+
+def bridge_orbiter(
+    account_name: str | int,
+    private_key: str | HexStr,
+    network: Network,
+    user_agent: str,
+    proxy: str,
+    to_chain: Network,
+    percentages: tuple[str, str] | None = None,
+    amount_range: list[float, float] | None = None,
+):
+    orbiter = Orbiter(
+        account_name=account_name,
+        private_key=private_key,
+        network=network,
+        user_agent=user_agent,
+        proxy=proxy,
+    )
+
+    return orbiter.bridge(
+        to_chain=to_chain, percentages=percentages, amount_range=amount_range
+    )
+
+
+def swap_baseswap(
+    account_name: str | int,
+    private_key: str | HexStr,
+    network: Network,
+    user_agent: str,
+    proxy: str,
+    from_token: str,
+    to_token: str,
+    min_amount: float,
+    max_amount: float,
+    decimal: int,
+):
+    baseswap = BaseSwap(
+        account_name=account_name,
+        private_key=private_key,
+        network=network,
+        user_agent=user_agent,
+        proxy=proxy,
+    )
+    return baseswap.swap(
+        from_token=from_token,
+        to_token=to_token,
+        min_amount=min_amount,
+        max_amount=max_amount,
+        decimal=decimal,
+        slippage=3,
+        all_amount=False,
+        min_percent=35,
+        max_percent=50,
+    )

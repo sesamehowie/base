@@ -3,16 +3,13 @@ from core.utils.decorators import retry_execution
 from core.utils.networks import Network
 from core.utils.helpers import sleeping
 from core.clients.evm_client import EvmClient
+from core.utils.exceptions import FailedSpinWarning
 import requests
 from web3 import Web3
 from eth_account import Account
 from typing import Self
 from eth_typing import HexStr
 from settings import COINBASE_REFERRAL_UUID
-
-
-class FailedSpinWarning(Exception):
-    pass
 
 
 class SpinWheel:

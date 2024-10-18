@@ -16,3 +16,10 @@ class ProxyException(Exception):
 
 class BlockchainException(Exception):
     pass
+
+
+class InvalidIntValueException(Exception):
+    pass
+
+class FailedSpinWarning(Exception):
+    pass

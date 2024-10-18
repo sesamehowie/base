@@ -3,10 +3,7 @@ import sys
 import asyncio
 from loguru import logger
 from module_runner import ModuleRunner
-
-
-class InvalidIntValueException(Exception):
-    pass
+from core.utils.exceptions import InvalidIntValueException
 
 
 async def spinner_task():

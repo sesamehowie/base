@@ -12,6 +12,7 @@ from eth_typing import HexStr, ChecksumAddress
 from web3.types import Wei
 from eth_account import Account
 from core.utils.networks import Network, Networks
+from core.utils.exceptions import BlockchainException
 from settings import (
     GAS_LIMIT_MULTIPLIER,
     GAS_PRICE_MULTIPLIER,
@@ -293,3 +294,61 @@ class EvmClient:
                 sleeping(3)
             except Exception:
                 sleeping(3)
+
+    def check_allowance(
+        self,
+        token_address: str,
+        spender_address: str | ChecksumAddress,
+        amount_in_wei: int,
+    ) -> bool:
+        try:
+            contract = self.get_contract(token_address)
+            symbol = contract.functions.symbol().call()
+
+            self.logger.info(
+                f"{self.account_name} | {self.address} | {self.module_name} | Check for approval {symbol}"
+            )
+
+            approved_amount_in_wei = self.get_allowance(
+                token_address=token_address, spender_address=spender_address
+            )
+
+            if amount_in_wei <= approved_amount_in_wei:
+                self.logger.info(
+                    f"{self.account_name} | {self.address} | {self.module_name} | Already approved"
+                )
+                return False
+
+            result = self.approve(token_address, spender_address, amount_in_wei)
+
+            sleeping(3)
+            return result
+        except Exception as error:
+            raise BlockchainException(f"Error: {error}")
+
+    async def approve(
+        self,
+        token_address: str,
+        spender_address: str | ChecksumAddress,
+        amount_in_wei: int,
+    ) -> bool:
+        transaction = (
+            self.get_contract(token_address)
+            .functions.approve(
+                spender_address,
+                amount=amount_in_wei,
+            )
+            .build_transaction(
+                {
+                    "from": self.address,
+                    "nonce": self.w3.eth.get_transaction_count(self.address),
+                    "chainId": self.network.chain_id,
+                }
+            )
+        )
+
+        signed = self.sign_transaction(tx_dict=transaction)
+
+        if signed:
+            return self.send_tx(signed)
+        return

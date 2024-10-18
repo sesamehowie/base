@@ -28,6 +28,8 @@ from .modules.coinbase.mint_summer_basecamp import SummerBasecampTrek
 from .modules.other.talentprotocol import TalentProtocol
 from .modules.swaps.baseswap import BaseSwap
 from .modules.bridges.orbiter import Orbiter
+from .modules.swaps.sushiswap import SushiSwap
+from .modules.lendings.aave import Aave
 
 from .utils.proxy_checker import is_proxy_working, rule_out_faulty_proxies
 from .utils.networks import Network, Networks
@@ -113,4 +115,6 @@ __all__ = [
     "write_csv",
     "async_sleeping",
     "EvmClient",
+    "SushiSwap",
+    "Aave",
 ]

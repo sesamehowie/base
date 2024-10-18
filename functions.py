@@ -29,9 +29,10 @@ from core import (
     SummerBasecampTrek,
     TalentProtocol,
     Network,
-    Networks,
     Orbiter,
     BaseSwap,
+    Aave,
+    SushiSwap,
 )
 
 
@@ -1932,3 +1933,44 @@ def swap_baseswap(
         min_percent=35,
         max_percent=50,
     )
+
+
+def swap_sushiswap(
+    account_name: str | int,
+    private_key: str | HexStr,
+    network: Network,
+    user_agent: str,
+    proxy: str,
+    amount_range: list[float, float],
+    from_token: str = "ETH",
+    to_token: str = "USDC",
+):
+    sushiswap = SushiSwap(
+        account_name=account_name,
+        private_key=private_key,
+        network=network,
+        user_agent=user_agent,
+        proxy=proxy,
+    )
+
+    return sushiswap.swap(
+        from_token_name=from_token, to_token_name=to_token, amount_range=amount_range
+    )
+
+
+def deposit_aave(
+    account_name: str | int,
+    private_key: str | HexStr,
+    network: Network,
+    user_agent: str,
+    proxy: str,
+    amount_range: list[float, float],
+):
+    aave = Aave(
+        account_name=account_name,
+        private_key=private_key,
+        network=network,
+        user_agent=user_agent,
+        proxy=proxy,
+    )
+    return aave.deposit(amount_range=amount_range, make_withdraw=True)

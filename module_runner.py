@@ -30,6 +30,8 @@ from functions import (
     bridge_orbiter,
     swap_baseswap,
     deploy_random_contract,
+    swap_sushiswap,
+    deposit_aave,
 )
 
 
@@ -346,14 +348,19 @@ class ModuleRunner:
             await async_sleeping(2)
 
     async def custom_module(self):
-        from settings import ORBITER_AMT_RANGE, BASESWAP_AMT_RANGE
+        from settings import (
+            ORBITER_AMT_RANGE,
+            BASESWAP_AMT_RANGE,
+            SUSHISWAP_AMT_RANGE,
+            AAVE_AMT_RANGE,
+        )
 
         self.logger.info("Starting custom run...")
 
         for key, name in list(zip(self.private_keys, self.account_names)):
             proxy = next(self.proxy_cycle)
 
-            modules = [bridge_orbiter, swap_baseswap]
+            modules = [deposit_aave, swap_sushiswap]
 
             user_agent = pyua()
 
@@ -381,9 +388,27 @@ class ModuleRunner:
                     BASESWAP_AMT_RANGE[1],
                     18,
                 ],
+                swap_sushiswap: [
+                    name,
+                    key,
+                    Networks.Base,
+                    user_agent,
+                    proxy,
+                    SUSHISWAP_AMT_RANGE,
+                    "ETH",
+                    "USDC.e",
+                ],
+                deposit_aave: [
+                    name,
+                    key,
+                    Networks.Base,
+                    user_agent,
+                    proxy,
+                    AAVE_AMT_RANGE,
+                ],
             }
-
-            random.shuffle(modules)
+            if len(modules) > 1:
+                random.shuffle(modules)
 
             for module in modules:
                 module(*arg_mapping[module])

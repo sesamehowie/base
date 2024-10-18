@@ -1,3 +1,4 @@
+import random
 from web3 import Web3
 from typing import Self
 from loguru import logger
@@ -110,17 +111,11 @@ class Aave:
     @retry_execution
     def deposit(
         self,
-        min_amount: float,
-        max_amount: float,
-        decimal: int,
+        amount_range: list[float, float],
         make_withdraw: bool,
-        all_amount: bool,
-        min_percent: int,
-        max_percent: int,
     ) -> None:
-        amount_wei, amount, balance = self.get_amount(
-            "ETH", min_amount, max_amount, decimal, all_amount, min_percent, max_percent
-        )
+        amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
+        amount_wei = self.client.to_wei(amount=amount, decimals=18)
 
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Deposit: {amount} ETH"
@@ -142,7 +137,7 @@ class Aave:
         signed = self.client.sign_transaction(transaction)
 
         if signed:
-            tx_hash = self.send_raw_transaction(signed)
+            tx_hash = self.client.send_tx(signed_tx=signed)
             if tx_hash:
                 if make_withdraw:
                     sleeping(1)
@@ -158,7 +153,7 @@ class Aave:
 
         if amount > 0:
             self.logger.info(
-                f"{self.account_name} | {self.address} | {self.module_name} | Withdraw: {self.w3.from_wei(amount, 'ether')} ETH"
+                f"{self.account_name} | {self.address} | {self.module_name} | Withdraw: {Web3.from_wei(amount, 'ether')} ETH"
             )
 
             self.approve(

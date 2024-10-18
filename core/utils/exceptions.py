@@ -12,3 +12,7 @@ class RequestFailedException(Exception):
 
 class ProxyException(Exception):
     pass
+
+
+class BlockchainException(Exception):
+    pass

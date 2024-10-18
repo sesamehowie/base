@@ -1,8 +1,8 @@
-from module_runner import ModuleRunner
-from loguru import logger
 import time
 import sys
 import asyncio
+from loguru import logger
+from module_runner import ModuleRunner
 
 
 class InvalidIntValueException(Exception):

@@ -10,7 +10,8 @@ Multitool software for Base blockchain
 
 + Base Onchain Summer quest
 + L2 balance checker
-+ Bridges: Nitro, Relay, Zora Instant
++ Bridges: Nitro, Relay, Zora Instant, Orbiter
++ SushiSwap
 + Baseswap
 + OKX withdraw
 + Contract Deployments

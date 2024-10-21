@@ -8,8 +8,9 @@ Multitool software for Base blockchain
 
 ## ***Features***
 
-+ Base Onchain Summer quest
-+ L2 balance checker
++ Base Onchain Summer quest(NFT mints)
++ Balance Checker with USD equivalent (Coingecko API)
++ L2 richest balance network selector
 + Bridges: Nitro, Relay, Zora Instant, Orbiter
 + SushiSwap
 + Baseswap
@@ -17,6 +18,7 @@ Multitool software for Base blockchain
 + Contract Deployments
 + Base Name Service
 + Lendings(Aave)
++ Talent Protocol registration
 
 ## ***Usage***
 

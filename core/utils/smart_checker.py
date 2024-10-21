@@ -5,6 +5,7 @@ import time
 from eth_typing import HexStr
 from eth_account import Account
 from web3 import Web3
+from requests.exceptions import HTTPError
 from web3.types import Wei
 from typing import Dict, Tuple, Self
 from loguru import logger
@@ -44,7 +45,6 @@ class SmartL2Checker:
             "Linea": Networks.Linea,
         }
 
-    @retry_execution
     def get_runner_network(self) -> Network:
         total_map: Dict = dict()
 
@@ -60,9 +60,15 @@ class SmartL2Checker:
                 proxy=self.proxy,
             )
 
-            balance: Wei = manager.get_eth_balance()
+            while True:
+                try:
+                    balance: Wei = manager.get_eth_balance()
+                    break
+                except HTTPError:
+                    time.sleep(30)
+
             total_map |= [(network.name, balance)]
-            time.sleep(10)
+            time.sleep(5)
 
             if balance >= max_val:
                 max_val = balance

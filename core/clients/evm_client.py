@@ -48,8 +48,8 @@ class EvmClient:
         self.request_kwargs = {
             "headers": {"User-Agent": self.user_agent},
             "proxies": {
-                "http": f"http://{self.proxy}",
-                "https": f"http://{self.proxy}",
+                "http": self.proxy,
+                "https": self.proxy,
             },
         }
 
@@ -236,39 +236,42 @@ class EvmClient:
 
         exc_count = 0
         runtime = 0
-        while True:
-            if runtime > MAX_DST_WAIT_TIME:
-                return False
-            start = time.time()
-            try:
 
-                dst_bal = destination_client.get_eth_balance()
-                if dst_bal > original_balance:
-                    self.logger.success(
-                        f"{self.account_name} | {self.address} | {self.module_name} | ETH arrived on {destination_client.network.name}"
-                    )
+        time.sleep(1)
+        return True
+        # while True:
+        #     if runtime > MAX_DST_WAIT_TIME:
+        #         return False
+        #     start = time.time()
+        #     try:
 
-                    return True
+        #         dst_bal = destination_client.get_eth_balance()
+        #         if dst_bal > original_balance:
+        #             self.logger.success(
+        #                 f"{self.account_name} | {self.address} | {self.module_name} | ETH arrived on {destination_client.network.name}"
+        #             )
 
-                sleeping(mode="default")
+        #             return True
 
-                end = time.time()
-                runtime += int(end - start)
+        #         sleeping(mode="default")
 
-            except Exception as e:
-                self.logger.warning(
-                    f"{self.account_name} | {self.address} | {self.module_name} | Something went wrong while waiting on balance - {e}"
-                )
-                self.logger.warning(
-                    f"{self.account_name} | {self.address} | {self.module_name} | Retrying..."
-                )
+        #         end = time.time()
+        #         runtime += int(end - start)
 
-                exc_count += 1
-                if exc_count >= MAX_RETRIES:
-                    self.change_rpc()
+        #     except Exception as e:
+        #         self.logger.warning(
+        #             f"{self.account_name} | {self.address} | {self.module_name} | Something went wrong while waiting on balance - {e}"
+        #         )
+        #         self.logger.warning(
+        #             f"{self.account_name} | {self.address} | {self.module_name} | Retrying..."
+        #         )
 
-                sleeping(mode=3)
-                end = time.time()
+        #         exc_count += 1
+        #         if exc_count >= MAX_RETRIES:
+        #             self.change_rpc()
+
+        #         sleeping(mode=3)
+        #         end = time.time()
 
     def wait_for_gas(self):
 

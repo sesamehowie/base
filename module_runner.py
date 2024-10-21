@@ -144,13 +144,6 @@ class ModuleRunner:
 
     async def smart_bridge(self, key: str, name: str, ua: str, proxy: str):
         logger.info("Starting Bridge to Zora and Base through ETH mainnet")
-        client = EvmClient(
-            account_name=name,
-            private_key=key,
-            network=Networks.Base,
-            user_agent=ua,
-            proxy=proxy,
-        )
 
         checker = SmartL2Checker(
             account_name=name,
@@ -161,10 +154,8 @@ class ModuleRunner:
         )
 
         network_to_continue = checker.get_runner_network()
-        bridges_to_choose_first = [bridge_nitro, bridge_relay]
+        bridges_to_choose_first = [bridge_nitro, bridge_relay, bridge_orbiter]
         rand_item = random.choice(bridges_to_choose_first)
-
-        client.wait_for_gas()
 
         rand_item(
             account_name=name,
@@ -172,69 +163,69 @@ class ModuleRunner:
             network=network_to_continue,
             user_agent=ua,
             proxy=proxy,
-            percentages=("97", "98"),
-            to_network=Networks.Ethereum,
+            percentages=("90", "92"),
+            amount_range=None,
+            to_network=Networks.Scroll,
         )
 
-        f_percent = ("39", "42")
-        s_percent = ("85", "87")
+        await async_sleeping(1)
 
-        client.wait_for_gas()
+    #     client.wait_for_gas()
 
-        selection_items = ["Zora", "Base"]
+    #     selection_items = ["Zora", "Base"]
 
-        for _ in range(random.randint(1, 5)):
-            random.shuffle(selection_items)
+    #     for _ in range(random.randint(1, 5)):
+    #         random.shuffle(selection_items)
 
-        first_item, second_item = selection_items
+    #     first_item, second_item = selection_items
 
-        if first_item == "Zora":
-            zora_instant_bridge(
-                account_name=name,
-                private_key=key,
-                network=Networks.Ethereum,
-                user_agent=ua,
-                proxy=proxy,
-                percentages=f_percent,
-            )
-            bridges_to_choose = [bridge_nitro, bridge_relay]
+    #     if first_item == "Zora":
+    #         zora_instant_bridge(
+    #             account_name=name,
+    #             private_key=key,
+    #             network=Networks.Ethereum,
+    #             user_agent=ua,
+    #             proxy=proxy,
+    #             percentages=f_percent,
+    #         )
+    #         bridges_to_choose = [bridge_nitro, bridge_relay]
 
-            bridge_base = random.choice(bridges_to_choose)
+    #         bridge_base = random.choice(bridges_to_choose)
 
-            bridge_base(
-                account_name=name,
-                private_key=key,
-                network=Networks.Ethereum,
-                user_agent=ua,
-                proxy=proxy,
-                percentages=s_percent,
-                to_network=Networks.Base,
-            )
-        else:
-            bridges_to_choose = [bridge_nitro, bridge_relay]
+    #         bridge_base(
+    #             account_name=name,
+    #             private_key=key,
+    #             network=Networks.Ethereum,
+    #             user_agent=ua,
+    #             proxy=proxy,
+    #             percentages=s_percent,
+    #             to_network=Networks.Base,
+    #         )
+    #     else:
+    #         bridges_to_choose = [bridge_nitro, bridge_relay]
 
-            bridge_base = random.choice(bridges_to_choose)
+    #         bridge_base = random.choice(bridges_to_choose)
 
-            bridge_base(
-                account_name=name,
-                private_key=key,
-                network=Networks.Ethereum,
-                user_agent=ua,
-                proxy=proxy,
-                percentages=f_percent,
-                to_network=Networks.Base,
-            )
+    #         bridge_base(
+    #             account_name=name,
+    #             private_key=key,
+    #             network=Networks.Ethereum,
+    #             user_agent=ua,
+    #             proxy=proxy,
+    #             percentages=f_percent,
+    #             to_network=Networks.Base,
+    #         )
 
-            zora_instant_bridge(
-                account_name=name,
-                private_key=key,
-                network=Networks.Ethereum,
-                user_agent=ua,
-                proxy=proxy,
-                percentages=s_percent,
-            )
+    #         zora_instant_bridge(
+    #             account_name=name,
+    #             private_key=key,
+    #             network=Networks.Ethereum,
+    #             user_agent=ua,
+    #             proxy=proxy,
+    #             percentages=s_percent,
+    #         )
 
-        sleeping(1)
+    #     sleeping(1)
 
     async def smart_coinbase_run(self):
         self.logger.info("Starting smart run...")
@@ -360,11 +351,12 @@ class ModuleRunner:
         for key, name in list(zip(self.private_keys, self.account_names)):
             proxy = next(self.proxy_cycle)
 
-            modules = [deposit_aave, swap_sushiswap]
+            modules = [self.smart_bridge]
 
             user_agent = pyua()
 
             arg_mapping = {
+                self.smart_bridge: [key, name, user_agent, proxy],
                 bridge_orbiter: [
                     name,
                     key,
@@ -411,7 +403,7 @@ class ModuleRunner:
                 random.shuffle(modules)
 
             for module in modules:
-                module(*arg_mapping[module])
+                await module(*arg_mapping[module])
 
                 await async_sleeping(mode=1)
 

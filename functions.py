@@ -1886,7 +1886,7 @@ def bridge_orbiter(
     network: Network,
     user_agent: str,
     proxy: str,
-    to_chain: Network,
+    to_network: Network,
     percentages: tuple[str, str] | None = None,
     amount_range: list[float, float] | None = None,
 ):
@@ -1899,7 +1899,7 @@ def bridge_orbiter(
     )
 
     return orbiter.bridge(
-        to_chain=to_chain, percentages=percentages, amount_range=amount_range
+        to_chain=to_network, percentages=percentages, amount_range=amount_range
     )
 
 

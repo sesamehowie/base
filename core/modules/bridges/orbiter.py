@@ -103,7 +103,12 @@ class Orbiter:
         from_chain = self.network
         from_token_name = ORBITER_FROM_TOKEN
 
-        amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
+        if percentages:
+            amount = self.client.get_human_amount(
+                self.client.get_percentile(percentages=percentages)
+            )
+        elif amount_range:
+            amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
 
         if not need_check:
             bridge_info = (

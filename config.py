@@ -16,6 +16,7 @@ RELAY_CHAIN_NAME = {
     10: "Optimism",
     7777777: "Zora",
     1: "Ethereum",
+    534352: "Scroll",
 }
 
 REGISTRY_CONTROLLER_ADDR = Web3.to_checksum_address(
@@ -80,7 +81,7 @@ ACCOUNT_NAMES = tuple([i for i in range(1, len(PRIVATE_KEYS) + 1)])
 
 PROXY_INPUTS = read_txt(os.path.join(WORKING_DIR, Path("data/proxies.txt")))
 
-WORKING_PROXIES = rule_out_faulty_proxies(PROXY_INPUTS)
+WORKING_PROXIES = PROXY_INPUTS
 
 if SHUFFLE_PROXIES:
     random.shuffle(WORKING_PROXIES)

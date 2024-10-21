@@ -77,13 +77,11 @@ class Nitro(RequestClient):
             "senderAddress": self.address,
         }
 
-        response = self.request_post(
+        data = self.request_post(
             url=url,
             headers=self.headers,
             json=quote,
         )
-
-        data = response.json()
 
         return data["txn"]["data"], self.client.w3.to_checksum_address(
             data["txn"]["to"]

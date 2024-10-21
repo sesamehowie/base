@@ -1,7 +1,7 @@
 import requests
 import pyuseragents
 from loguru import logger
-from requests.exceptions import ProxyError, ConnectTimeout, ReadTimeout
+from requests.exceptions import ProxyError, ConnectTimeout, ReadTimeout, ConnectionError
 
 
 def is_proxy_working(url: str, proxy: str) -> bool:
@@ -24,7 +24,7 @@ def is_proxy_working(url: str, proxy: str) -> bool:
         if resp.status_code in successful_statuses:
             return True
 
-    except (ProxyError, ConnectTimeout, ReadTimeout):
+    except (ProxyError, ConnectTimeout, ReadTimeout, ConnectionError):
         return False
 
 

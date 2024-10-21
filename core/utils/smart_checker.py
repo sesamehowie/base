@@ -36,6 +36,7 @@ class SmartL2Checker:
             Networks.Arbitrum,
             Networks.Optimism,
             Networks.Linea,
+            Networks.Base,
         )
 
         self.networks_mapping: Dict[str, Network] = {

@@ -236,42 +236,39 @@ class EvmClient:
 
         exc_count = 0
         runtime = 0
+        while True:
+            if runtime > MAX_DST_WAIT_TIME:
+                return False
+            start = time.time()
+            try:
 
-        time.sleep(1)
-        return True
-        # while True:
-        #     if runtime > MAX_DST_WAIT_TIME:
-        #         return False
-        #     start = time.time()
-        #     try:
+                dst_bal = destination_client.get_eth_balance()
+                if dst_bal > original_balance:
+                    self.logger.success(
+                        f"{self.account_name} | {self.address} | {self.module_name} | ETH arrived on {destination_client.network.name}"
+                    )
 
-        #         dst_bal = destination_client.get_eth_balance()
-        #         if dst_bal > original_balance:
-        #             self.logger.success(
-        #                 f"{self.account_name} | {self.address} | {self.module_name} | ETH arrived on {destination_client.network.name}"
-        #             )
+                    return True
 
-        #             return True
+                sleeping(mode="default")
 
-        #         sleeping(mode="default")
+                end = time.time()
+                runtime += int(end - start)
 
-        #         end = time.time()
-        #         runtime += int(end - start)
+            except Exception as e:
+                self.logger.warning(
+                    f"{self.account_name} | {self.address} | {self.module_name} | Something went wrong while waiting on balance - {e}"
+                )
+                self.logger.warning(
+                    f"{self.account_name} | {self.address} | {self.module_name} | Retrying..."
+                )
 
-        #     except Exception as e:
-        #         self.logger.warning(
-        #             f"{self.account_name} | {self.address} | {self.module_name} | Something went wrong while waiting on balance - {e}"
-        #         )
-        #         self.logger.warning(
-        #             f"{self.account_name} | {self.address} | {self.module_name} | Retrying..."
-        #         )
+                exc_count += 1
+                if exc_count >= MAX_RETRIES:
+                    self.change_rpc()
 
-        #         exc_count += 1
-        #         if exc_count >= MAX_RETRIES:
-        #             self.change_rpc()
-
-        #         sleeping(mode=3)
-        #         end = time.time()
+                sleeping(mode=3)
+                end = time.time()
 
     def wait_for_gas(self):
 

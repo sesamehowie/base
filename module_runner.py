@@ -163,7 +163,7 @@ class ModuleRunner:
             network=network_to_continue,
             user_agent=ua,
             proxy=proxy,
-            percentages=("90", "92"),
+            percentages=("88", "89"),
             amount_range=None,
             to_network=Networks.Scroll,
         )

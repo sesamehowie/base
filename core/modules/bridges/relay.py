@@ -117,8 +117,6 @@ class Relay(RequestClient):
 
         networks_data = self.get_bridge_config(to_network=to_network)
         tx_data = self.get_bridge_data(amount_wei=amount_in_wei, to_network=to_network)
-        print(tx_data)
-        print(networks_data)
 
         self.logger.info(
             f"{self.account_name} | {self.address} | {self.module_name} | Bridge {round(amount, 6)}: {self.network.name} -> {RELAY_CHAIN_NAME[to_network.chain_id]}"

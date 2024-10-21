@@ -2,6 +2,7 @@ import os
 import asyncio
 from pyuseragents import random as pyua
 import random
+from eth_typing import HexStr
 from web3 import Web3
 from pathlib import Path
 from eth_account import Account
@@ -12,6 +13,7 @@ from core import (
     write_csv,
     EvmClient,
     Networks,
+    Network,
     SmartL2Checker,
 )
 
@@ -32,6 +34,7 @@ from functions import (
     deploy_random_contract,
     swap_sushiswap,
     deposit_aave,
+    check_balance,
 )
 
 
@@ -408,3 +411,20 @@ class ModuleRunner:
                 await async_sleeping(mode=1)
 
             await async_sleeping(mode=2)
+
+    async def run_module(self):
+        self.logger.info("Starting module run...")
+
+        for key, name in list(zip(self.private_keys, self.account_names)):
+            proxy = next(self.proxy_cycle)
+            user_agent = pyua()
+
+            check_balance(
+                name,
+                key,
+                Networks.Scroll,
+                user_agent,
+                proxy,
+            )
+
+            await async_sleeping(1)

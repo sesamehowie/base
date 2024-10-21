@@ -30,6 +30,7 @@ from .modules.swaps.baseswap import BaseSwap
 from .modules.bridges.orbiter import Orbiter
 from .modules.swaps.sushiswap import SushiSwap
 from .modules.lendings.aave import Aave
+from .modules.other.balance_checker import BalanceChecker
 
 from .utils.proxy_checker import is_proxy_working, rule_out_faulty_proxies
 from .utils.networks import Network, Networks
@@ -117,4 +118,5 @@ __all__ = [
     "EvmClient",
     "SushiSwap",
     "Aave",
+    "BalanceChecker",
 ]

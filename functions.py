@@ -33,6 +33,7 @@ from core import (
     BaseSwap,
     Aave,
     SushiSwap,
+    BalanceChecker,
 )
 
 
@@ -1922,6 +1923,7 @@ def swap_baseswap(
         user_agent=user_agent,
         proxy=proxy,
     )
+
     return baseswap.swap(
         from_token=from_token,
         to_token=to_token,
@@ -1973,4 +1975,23 @@ def deposit_aave(
         user_agent=user_agent,
         proxy=proxy,
     )
+
     return aave.deposit(amount_range=amount_range, make_withdraw=True)
+
+
+def check_balance(
+    account_name: str | int,
+    private_key: str | HexStr,
+    network: Network,
+    user_agent: str,
+    proxy: str,
+):
+    checker = BalanceChecker(
+        account_name=account_name,
+        private_key=private_key,
+        network=network,
+        user_agent=user_agent,
+        proxy=proxy,
+    )
+
+    return checker.run()

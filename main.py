@@ -26,6 +26,7 @@ async def main():
         4: "OCS campaign results",
         5: "TalentProtocol registration",
         6: "Custom Module",
+        7: "Run individual module of your choice",
     }
 
     logger.info("Choose action:\n")
@@ -36,7 +37,7 @@ async def main():
     while True:
         try:
             choice = int(input())
-            if choice in range(1, 7):
+            if choice in range(1, 8):
                 break
             else:
                 raise InvalidIntValueException(
@@ -56,6 +57,7 @@ async def main():
         4: module_runner.get_and_write_ocs_results,
         5: module_runner.register_talentprotocol,
         6: module_runner.custom_module,
+        7: module_runner.run_module,
     }
 
     tasks = [tasks_mapping[choice]()]

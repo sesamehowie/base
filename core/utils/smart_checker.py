@@ -1,6 +1,5 @@
 from core.clients.evm_client import EvmClient
 from core.utils.networks import Network, Networks
-from core.utils.decorators import retry_execution
 import time
 from eth_typing import HexStr
 from eth_account import Account

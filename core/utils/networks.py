@@ -35,8 +35,8 @@ class Networks:
         name="Base",
         chain_id=8453,
         rpc_list=[
-            "https://base.meowrpc.com",
-            "https://1rpc.io/base",
+            "https://damp-ultra-spree.base-mainnet.quiknode.pro/61a953d960f44f9c2661db41a1ec2c57b699dde8",
+            "https://damp-ultra-spree.base-mainnet.quiknode.pro/61a953d960f44f9c2661db41a1ec2c57b699dde8",
         ],
         scanner="https://basescan.org",
         eip1559_support=True,
@@ -68,7 +68,7 @@ class Networks:
     Arbitrum = Network(
         name="Arbitrum",
         rpc_list=[
-            "https://arbitrum.meowrpc.com",
+            "https://arbitrum-one.publicnode.com",
             "https://arbitrum-one.publicnode.com",
         ],
         chain_id=42161,
@@ -95,6 +95,20 @@ class Networks:
         eip1559_support=True,
         token="ETH",
     )
+    Bitlayer = Network(
+        name="Bitlayer",
+        chain_id=200901,
+        rpc_list=[
+            "https://rpc.bitlayer-rpc.com",
+            "https://rpc.ankr.com/bitlayer",
+            "https://rpc.bitlayer.org",
+        ],
+        scanner="https://https://www.btrscan.com",
+        eip1559_support=True,
+        token="BTC",
+    )
+
+    NetworkList = [Ethereum, Base, Optimism, Linea, Arbitrum, Zora, Scroll, Bitlayer]
 
     @staticmethod
     def get_network_by_name(name: str) -> Network | None:
@@ -106,6 +120,7 @@ class Networks:
             "Linea": Networks.Linea,
             "Zora": Networks.Zora,
             "Scroll": Networks.Scroll,
+            "Bitlayer": Networks.Bitlayer,
         }.get(name, None)
 
     @staticmethod
@@ -120,6 +135,7 @@ class Networks:
                 21: "Base",
                 23: "Linea",
                 30: "Zora",
+                59: "Bitlayer",
             }.get(orbiter_id, None)
         )
 
@@ -133,4 +149,5 @@ class Networks:
             59144: Networks.Linea,
             7777777: Networks.Zora,
             534352: Networks.Scroll,
+            200901: Networks.Bitlayer,
         }.get(chain_id, None)

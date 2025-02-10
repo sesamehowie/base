@@ -131,13 +131,7 @@ class BaseSwap:
             )
 
             approve_amount = 2**128 if amount > allowance_amount else 0
-
-            tx_data = {
-                "from": self.address,
-                "nonce": self.client.w3.eth.get_transaction_count(self.address),
-                "chainId": self.network.chain_id,
-            }
-
+            tx_data = self.client.get_tx_params(is_for_contract_tx=True)
             transaction = contract.functions.approve(
                 contract_address, approve_amount
             ).build_transaction(tx_data)
@@ -169,13 +163,8 @@ class BaseSwap:
         return int(min_amount_out[1] - (min_amount_out[1] / 100 * slippage))
 
     def swap_to_token(self, from_token: str, to_token: str, amount: int, slippage: int):
-        tx_data = {
-            "from": self.address,
-            "nonce": self.client.w3.eth.get_transaction_count(self.address),
-            "chainId": self.network.chain_id,
-            "value": amount,
-        }
-
+        tx_data = self.client.get_tx_params(is_for_contract_tx=True)
+        tx_data["value"] = amount
         deadline = int(time.time()) + 10**6
 
         min_amount_out = self.get_min_amount_out(
@@ -199,7 +188,7 @@ class BaseSwap:
 
         self.approve(amount, token_address, BASESWAP_CONTRACTS["router"])
 
-        tx_data = self.get_tx_data()
+        tx_data = self.client.get_tx_params(is_for_contract_tx=True)
 
         deadline = int(time.time()) + 1000000
 

@@ -65,14 +65,15 @@ class Relay(RequestClient):
         }
 
         params = {
-            "originChainId": self.client.network.chain_id,
+            "originChainId": self.network.chain_id,
             "destinationChainId": to_network.chain_id,
             "user": ZERO_ADDRESS,
             "currency": ZERO_ADDRESS,
         }
 
-        data = self.request_get(
+        data = self.request(
             url=url,
+            method="GET",
             headers=headers,
             params=params,
         )
@@ -91,8 +92,9 @@ class Relay(RequestClient):
             "source": "relay.link",
         }
 
-        data = self.request_post(
+        data = self.request(
             url=url,
+            method="POST",
             json=payload,
             headers={"User-Agent": self.user_agent},
         )

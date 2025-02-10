@@ -13,6 +13,7 @@ from web3.types import Wei
 from eth_account import Account
 from core.utils.networks import Network, Networks
 from core.utils.exceptions import BlockchainException
+from core.utils.models import AccountStats
 from settings import (
     GAS_LIMIT_MULTIPLIER,
     GAS_PRICE_MULTIPLIER,
@@ -46,11 +47,15 @@ class EvmClient:
         self.proxy = proxy
         self.proxy_cycle = PROXY_CYCLE
         self.request_kwargs = {
-            "headers": {"User-Agent": self.user_agent},
+            "headers": {
+                "User-Agent": self.user_agent,
+                "Content-Type": "application/json",
+            },
             "proxies": {
                 "http": self.proxy,
                 "https": self.proxy,
             },
+            "timeout": 60,
         }
 
         self.w3 = Web3(
@@ -60,7 +65,7 @@ class EvmClient:
         self.logger = logger
         self.module_name = "EvmClient"
 
-        if network.chain_id == Networks.Linea.chain_id:
+        if network.chain_id in (Networks.Linea.chain_id, Networks.Scroll.chain_id):
             self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     @staticmethod
@@ -75,6 +80,23 @@ class EvmClient:
     def from_wei(amount_wei: int | Wei, decimals: int):
         return amount_wei / 10**decimals
 
+    def get_nonce(self, address: str | ChecksumAddress) -> int:
+        return self.w3.eth.get_transaction_count(address)
+
+    def dump_account_stats(self) -> AccountStats:
+        tx_count = self.get_nonce(self.address)
+        tx_timestamp = int(time.time())
+        eth_balance = self.from_wei(self.get_eth_balance(), decimals=18)
+
+        stats = AccountStats(
+            address=self.address,
+            tx_count=tx_count,
+            eth_balance=eth_balance,
+            last_tx_timestamp=tx_timestamp,
+        )
+
+        return stats
+
     def get_contract(self, contract_addr: str | ChecksumAddress, abi=None) -> Contract:
         from config import ERC20_ABI
 
@@ -87,26 +109,37 @@ class EvmClient:
 
     def get_tx_params(
         self,
-        to_address: str | ChecksumAddress,
-        value: int,
+        to_address: str | ChecksumAddress = None,
+        value: int = 0,
         data: bytes = None,
         default_gas: int = 200000,
         eip_1559: bool = True,
         estimate_gas: bool = True,
+        is_for_contract_tx: bool = False,
     ) -> dict:
+
+        if is_for_contract_tx:
+            return {
+                "from": Web3.to_checksum_address(self.address),
+                "nonce": self.get_nonce(self.address),
+                "chainId": self.chain_id,
+            }
 
         tx_params = {
             "from": Web3.to_checksum_address(self.address),
             "to": Web3.to_checksum_address(to_address),
             "chainId": self.chain_id,
-            "nonce": self.w3.eth.get_transaction_count(self.address),
+            "nonce": self.get_nonce(self.address),
             "value": value,
         }
+
+        time.sleep(4)
 
         if data is not None:
             tx_params["data"] = data
 
         if eip_1559:
+            time.sleep(5)
             base_fee_per_gas = self.w3.eth.get_block("latest")["baseFeePerGas"]
             max_priority_fee_per_gas = self.w3.eth.max_priority_fee
             max_fee_per_gas = max_priority_fee_per_gas + int(
@@ -118,12 +151,14 @@ class EvmClient:
             tx_params["maxFeePerGas"] = int(max_fee_per_gas * GAS_PRICE_MULTIPLIER)
         else:
             tx_params["gasPrice"] = int(self.w3.eth.gas_price * GAS_PRICE_MULTIPLIER)
+            time.sleep(4)
 
         if estimate_gas:
             try:
                 tx_params["gas"] = int(
                     self.w3.eth.estimate_gas(transaction=tx_params) * GAS_AMT_MULTIPLIER
                 )
+                time.sleep(4)
             except Exception:
                 tx_params["gas"] = default_gas
 
@@ -136,10 +171,20 @@ class EvmClient:
 
         return self
 
+    def get_token_info(self, token_addr: str | ChecksumAddress):
+        contract = self.get_contract(contract_addr=Web3.to_checksum_address(token_addr))
+        decimals = contract.functions.decimals().call()
+        name = contract.functions.name().call()
+        symbol = contract.functions.symbol().call()
+        balance = contract.functions.balanceOf(self.address).call()
+        return name, symbol, decimals, balance
+
     def send_tx(self, signed_tx: SignedTx) -> str | HexStr:
         timeout = 180
-
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        try:
+            tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        except ValueError:
+            return
 
         if tx_hash:
 
@@ -171,17 +216,20 @@ class EvmClient:
             transaction_dict=tx_dict, private_key=self.private_key
         )
 
-    def get_eth_balance(self):
+    def get_eth_balance(self, address: str | ChecksumAddress = None):
 
-        return self.w3.eth.get_balance(self.address)
+        return (
+            self.w3.eth.get_balance(self.address)
+            if address is None
+            else self.w3.eth.get_balance(address)
+        )
 
     def get_gas_price(self):
         return self.w3.eth.gas_price
 
     @staticmethod
     def get_human_amount(amount_wei) -> float:
-
-        return round(float(Web3.from_wei(amount_wei, "ether")), 6)
+        return float(f'{(float(Web3.from_wei(amount_wei, "ether"))):.6f}')
 
     def get_percentile(self, percentages: tuple[str, str]):
         min_percent, max_percent = percentages
@@ -295,6 +343,15 @@ class EvmClient:
             except Exception:
                 sleeping(3)
 
+    def get_allowance(
+        self,
+        token_address: str | ChecksumAddress,
+        spender_address: str | ChecksumAddress,
+    ):
+        contract = self.get_contract(token_address)
+        allowance = contract.functions.allowance(self.address, spender_address).call()
+        return allowance
+
     def check_allowance(
         self,
         token_address: str,
@@ -306,7 +363,7 @@ class EvmClient:
             symbol = contract.functions.symbol().call()
 
             self.logger.info(
-                f"{self.account_name} | {self.address} | {self.module_name} | Check for approval {symbol}"
+                f"{self.account_name} | {self.address} | {self.module_name} | Checking for {symbol} approval"
             )
 
             approved_amount_in_wei = self.get_allowance(
@@ -326,7 +383,7 @@ class EvmClient:
         except Exception as error:
             raise BlockchainException(f"Error: {error}")
 
-    async def approve(
+    def approve(
         self,
         token_address: str,
         spender_address: str | ChecksumAddress,
@@ -336,15 +393,9 @@ class EvmClient:
             self.get_contract(token_address)
             .functions.approve(
                 spender_address,
-                amount=amount_in_wei,
+                amount_in_wei,
             )
-            .build_transaction(
-                {
-                    "from": self.address,
-                    "nonce": self.w3.eth.get_transaction_count(self.address),
-                    "chainId": self.network.chain_id,
-                }
-            )
+            .build_transaction(self.get_tx_params(is_for_contract_tx=True))
         )
 
         signed = self.sign_transaction(tx_dict=transaction)

@@ -1,5 +1,4 @@
 import functools
-from traceback import format_exc
 from loguru import logger
 from core.utils.helpers import sleeping
 from settings import MAX_RETRIES, ACCEPTABLE_L1_GWEI
@@ -14,12 +13,12 @@ def retry_execution(func):
                 res = func(*args, **kwargs)
                 return res
             except Exception as e:
-                logger.warning(
-                    f"{func.__name__} - Traceback - {format_exc()}, exception: {repr(e)}"
-                )
-                sleeping(mode=1)
+                logger.warning(f"{func.__name__} - exception: {str(e)}")
+                if "insufficient funds" in str(e):
+                    return
+                sleeping(mode=3)
         else:
-            return None
+            return
 
     return wrapper
 

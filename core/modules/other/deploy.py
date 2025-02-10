@@ -88,11 +88,7 @@ class Deploy:
         )
 
         tx_params = contract.constructor().build_transaction(
-            {
-                "from": self.address,
-                "nonce": self.client.w3.eth.get_transaction_count(self.address),
-                "chainId": self.network.chain_id,
-            }
+            self.client.get_tx_params(is_for_contract_tx=True)
         )
 
         tx_params["gas"] = 300000

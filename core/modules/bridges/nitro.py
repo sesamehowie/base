@@ -6,7 +6,6 @@ from core.clients.evm_client import EvmClient
 from core.clients.request_client import RequestClient
 from settings import NITRO_FROM_TOKEN, NITRO_TO_TOKEN, NITRO_AMT_RANGE
 from config import ETH_MASK
-from web3 import Web3
 from eth_account import Account
 from typing import Self
 from eth_typing import HexStr
@@ -26,8 +25,8 @@ class Nitro(RequestClient):
         self.logger = logger
         self.private_key = private_key
         self.account_name = account_name
-        self.account = Account.from_key(self.private_key)
-        self.address = self.address = Web3.to_checksum_address(self.account.address)
+        self.account = Account.from_key(private_key)
+        self.address = self.account.address
         self.network: Network = network
         self.user_agent = user_agent
         self.proxy = proxy
@@ -65,7 +64,7 @@ class Nitro(RequestClient):
             "partnerId": 1,
         }
 
-        data = self.request_get(url=url, params=params, headers=self.headers)
+        data = self.request(url=url, method="GET", params=params, headers=self.headers)
 
         return data
 
@@ -77,8 +76,9 @@ class Nitro(RequestClient):
             "senderAddress": self.address,
         }
 
-        data = self.request_post(
+        data = self.request(
             url=url,
+            method="POST",
             headers=self.headers,
             json=quote,
         )

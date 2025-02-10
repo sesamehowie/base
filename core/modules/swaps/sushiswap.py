@@ -10,7 +10,13 @@ from core.utils.networks import Network
 from loguru import logger
 from settings import SWAP_SLIPPAGE
 from core.utils.decorators import retry_execution
-from config import SUSHISWAP_ABI, SUSHISWAP_CONTRACTS, TOKENS_PER_CHAIN, ZERO_ADDRESS
+from config import (
+    SUSHISWAP_QUOTER,
+    SUSHISWAP_ROUTER,
+    SUSHISWAP_CONTRACTS,
+    TOKENS_PER_CHAIN,
+    ZERO_ADDRESS,
+)
 
 
 class SushiSwap:
@@ -48,11 +54,11 @@ class SushiSwap:
 
         self.router_contract = self.client.get_contract(
             SUSHISWAP_CONTRACTS[self.network.name]["router"],
-            SUSHISWAP_ABI["router"],
+            SUSHISWAP_ROUTER,
         )
         self.quoter_contract = self.client.get_contract(
             SUSHISWAP_CONTRACTS[self.network.name]["quoter"],
-            SUSHISWAP_ABI["quoter"],
+            SUSHISWAP_QUOTER,
         )
 
     def get_path(
@@ -134,9 +140,9 @@ class SushiSwap:
         min_amount_out = self.get_min_amount_out(path, amount_in_wei)
 
         if from_token_name != "ETH":
-            self.client.check_for_approved(
+            self.client.check_allowance(
                 from_token_address,
-                SUSHISWAP_CONTRACTS[self.network]["router"],
+                SUSHISWAP_CONTRACTS[self.network.name]["router"],
                 amount_in_wei,
             )
 
@@ -166,12 +172,8 @@ class SushiSwap:
             )
             full_data.append(tx_additional_data)
 
-        tx_params = {
-            "from": self.address,
-            "nonce": self.client.w3.eth.get_transaction_count(self.address),
-            "chainId": self.network.chain_id,
-            "value": amount_in_wei if from_token_name == "ETH" else 0,
-        }
+        tx_params = self.client.get_tx_params(is_for_contract_tx=True)
+        tx_params["value"] = amount_in_wei if from_token_name == "ETH" else 0
         transaction = self.router_contract.functions.multicall(
             full_data
         ).build_transaction(tx_params)

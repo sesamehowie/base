@@ -1,10 +1,11 @@
 import time
+import json
 import csv
 import asyncio
 import random
 from pathlib import Path
 from eth_account import Account
-from typing import Iterable, Generator
+from typing import Iterable, Generator, Any
 from loguru import logger
 from settings import (
     DELAY_BETWEEN_ACCOUNTS,
@@ -45,6 +46,11 @@ def read_csv(file_name: str | Path, skip_header: bool = False):
             data.append(row)
 
     return data
+
+
+def write_json(file_name: str | Path, data: dict[str, Any]):
+    with open(file_name, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 
 def is_corresponding_address(key, addr):
@@ -99,8 +105,10 @@ async def async_sleeping(mode: int) -> None:
     await asyncio.sleep(t)
 
 
-def write_txt(new_filename: Path | str, data_list: list | tuple) -> bool | None:
-    with open(new_filename, "w") as file:
+def write_txt(
+    new_filename: Path | str, data_list: list | tuple, mode: str = "w"
+) -> bool | None:
+    with open(new_filename, mode=mode) as file:
         for item in data_list:
             file.write(item + "\n")
         return

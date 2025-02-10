@@ -9,7 +9,6 @@ from loguru import logger
 from core.utils.networks import Network
 from core.utils.decorators import retry_execution
 from config import ENS_ABI, REGISTRY_CONTROLLER_ADDR
-from core.modules.coinbase.coinbase_wallet_mints import Mints
 from hexbytes import HexBytes
 from eth_utils import keccak, to_hex
 from eth_abi import encode
@@ -133,11 +132,7 @@ class BaseName:
         else:
             raise
 
-        tx_params = {
-            "from": self.address,
-            "nonce": self.client.w3.eth.get_transaction_count(self.address),
-        }
-
+        tx_params = self.client.get_tx_params(is_for_contract_tx=True)
         name_hash = self.namehash(name2)
         payload = to_hex(encode(["bytes32", "string"], [name_hash, name2]))
 
@@ -168,7 +163,7 @@ class BaseName:
         try:
             txn["gas"] = self.client.w3.eth.estimate_gas(transaction=txn)
         except Exception:
-            txn["gas"] = Mints.BaseEns.default_gas
+            txn["gas"] = 200000
 
         signed = self.client.sign_transaction(tx_dict=txn)
 

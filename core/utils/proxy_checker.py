@@ -16,9 +16,9 @@ def is_proxy_working(url: str, proxy: str) -> bool:
         headers = {"User-Agent": user_agent}
         resp = requests.get(
             url=url,
-            proxies={"http": f"http://{proxy}", "https": f"http://{proxy}"},
+            proxies={"http": proxy, "https": proxy},
             headers=headers,
-            timeout=120,
+            timeout=30,
         )
 
         if resp.status_code in successful_statuses:
@@ -31,7 +31,7 @@ def is_proxy_working(url: str, proxy: str) -> bool:
 def rule_out_faulty_proxies(proxy_list: list | tuple) -> list | tuple:
     final_list = []
 
-    for proxy in proxy_list:
+    for proxy in tuple(proxy_list):
 
         if is_proxy_working("https://google.com", proxy):
             final_list.append(proxy)

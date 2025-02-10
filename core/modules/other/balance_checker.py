@@ -1,4 +1,3 @@
-import json
 from core.clients.request_client import RequestClient
 from core.clients.evm_client import EvmClient
 from core.utils.networks import Network
@@ -8,8 +7,6 @@ from eth_account import Account
 from web3 import Web3
 from typing import Self
 from loguru import logger
-from decimal import Decimal
-from settings import COINGECKO_API_KEY
 
 
 class BalanceChecker(RequestClient):
@@ -53,24 +50,16 @@ class BalanceChecker(RequestClient):
         return round(amount_eth * usd_price, 2)
 
     @retry_execution
-    def get_coingecko_token_price(self, token_id: str = "ethereum") -> float:
-        url = f"https://api.coingecko.com/api/v3/coins/{token_id}"
-
-        headers = {
-            "accept": "application/json",
-            "x-cg-demo-api-key": COINGECKO_API_KEY,
-            "user-agent": self.user_agent,
-        }
-
-        data = self.request_get(url=url, headers=headers)
-
-        return data["market_data"]["current_price"]["usd"]
+    def get_token_price(
+        self, token_address: str = "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+    ) -> float:
+        url = f"https://api.dexscreener.com/latest/dex/tokens/{token_address}"
+        data = self.request(url=url, method="GET")
+        return round(float(data["pairs"][0]["priceUsd"]), 2)
 
     def run(self):
         eth_balance = self.check_eth_balance()
-
-        usd_price = self.get_coingecko_token_price()
-
+        usd_price = self.get_token_price()
         usd_equivalent = self.eth_to_usd(amount_eth=eth_balance, usd_price=usd_price)
 
         logger.success(

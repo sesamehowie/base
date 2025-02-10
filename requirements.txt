@@ -44,14 +44,14 @@ pyuseragents==1.0.5
 pywin32==306
 referencing==0.35.1
 regex==2024.7.24
-requests==2.32.3
+угр3ушонтл3уцв йфіЮБч
 rlp==4.0.1
 rpds-py==0.20.0
 setuptools==65.5.0
 toolz==0.12.1
 typing_extensions==4.12.2
 urllib3==2.2.2
-web3==6.20.1
+web3==6.19.0
 websockets==12.0
 win32-setctime==1.1.0
 yarl==1.9.4

@@ -106,6 +106,7 @@ class Orbiter:
         if percentages:
             amount = self.client.get_human_amount(
                 self.client.get_percentile(percentages=percentages)
+                - Web3.to_wei(0.0002, "ether")
             )
         elif amount_range:
             amount = round(random.uniform(amount_range[0], amount_range[1]), 6)
@@ -119,7 +120,6 @@ class Orbiter:
             )
 
         bridge_data = self.get_maker_data(to_chain=to_chain)
-
         destination_code = 9000 + self.internal_ids[to_chain.name]
         decimals = 18 if from_token_name == "ETH" else 6
         fee = int(float(bridge_data["fee"]) * 10**decimals)
@@ -130,18 +130,15 @@ class Orbiter:
             return round(float(fee / 10**decimals), 6)
 
         min_price, max_price = bridge_data["min_amount"], bridge_data["max_amount"]
-
         transaction = self.client.get_tx_params(
             value=full_amount,
             to_address=Web3.to_checksum_address(bridge_data["maker"]),
         )
-
         if min_price <= amount <= max_price:
             if int(f"{full_amount}"[-4:]) != destination_code:
                 raise SoftwareException(
                     "Math problem in Python. Machine will save your money =)"
                 )
-
             dest_client = EvmClient(
                 account_name=self.account_name,
                 private_key=self.private_key,
@@ -149,24 +146,17 @@ class Orbiter:
                 user_agent=self.user_agent,
                 proxy=self.proxy,
             )
-
             init_balance = dest_client.get_eth_balance()
-
             signed = self.client.sign_transaction(transaction)
-
             if signed:
                 tx_hash = self.client.send_tx(signed_tx=signed)
-
                 if tx_hash:
-
                     self.logger.success(
                         f"{self.account_name} | {self.address} | {self.module_name} | Bridge complete. Note: wait a little for receiving funds",
                     )
-
                     return self.client.wait_for_funds_on_dest_chain(
                         destination_network=to_chain, original_balance=init_balance
                     )
-
         else:
             raise BridgeException(
                 f"Limit range for bridge: {min_price} – {max_price} {from_token_name}!"

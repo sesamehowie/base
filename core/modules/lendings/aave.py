@@ -76,11 +76,7 @@ class Aave:
 
             approve_amount = 2**128 if amount > allowance_amount else 0
 
-            tx_data = {
-                "from": self.address,
-                "nonce": self.client.w3.eth.get_transaction_count(self.address),
-                "chainId": self.network.chain_id,
-            }
+            tx_data = self.client.get_tx_params(is_for_contract_tx=True)
 
             transaction = contract.functions.approve(
                 contract_address, approve_amount
@@ -121,12 +117,8 @@ class Aave:
             f"{self.account_name} | {self.address} | {self.module_name} | Deposit: {amount} ETH"
         )
 
-        tx_data = {
-            "from": self.address,
-            "nonce": self.client.w3.eth.get_transaction_count(self.address),
-            "chainId": self.network.chain_id,
-            "value": amount_wei,
-        }
+        tx_data = self.client.get_tx_params(is_for_contract_tx=True)
+        tx_data["value"] = amount_wei
 
         transaction = self.contract.functions.depositETH(
             Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
@@ -150,21 +142,16 @@ class Aave:
     @retry_execution
     def withdraw(self) -> None:
         amount = self.get_deposit_amount()
-
         if amount > 0:
             self.logger.info(
-                f"{self.account_name} | {self.address} | {self.module_name} | Withdraw: {Web3.from_wei(amount, 'ether')} ETH"
+                f"{self.account_name} | {self.address} | {self.module_name} | Withdraw: {Web3.from_wei(amount, 'ether'):.6f} ETH"
             )
 
             self.approve(
                 amount, "0xD4a0e0b9149BCee3C920d2E00b5dE09138fd8bb7", AAVE_CONTRACT
             )
 
-            tx_data = {
-                "from": self.address,
-                "nonce": self.client.w3.eth.get_transaction_count(self.address),
-                "chainId": self.network.chain_id,
-            }
+            tx_data = self.client.get_tx_params(is_for_contract_tx=True)
 
             transaction = self.contract.functions.withdrawETH(
                 Web3.to_checksum_address("0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"),
